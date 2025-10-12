@@ -1,35 +1,29 @@
 use std::io;
-use std::cmp::Ordering;
-use rand::prelude::*;
+use std::fs::read_to_string;
 
 fn main() {
-    let mut n = String::new();
+    // parse the input
+    let (mut l, mut r) = read_lines("./input.txt");
+    l.sort();
+    r.sort();
 
-    println!("Enter num");
-    io::stdin()
-        .read_line(&mut n)
-        .expect("Failed to read line");
-
-    let n = n.trim().parse::<u32>().expect("Parse failed");
-    println!("The result is {}", fibr(n));
-}
-
-// // takes an n, rets the nth fib
-// fn fib(n: u32) -> u32 {
-//     let mut i = 0;
-//     let mut num : (u32, u32) = ( 0, 1 );
-//     loop {
-//         if i == n { break; }
-//         num = ( num.1, num.0 + num.1);
-//         i+=1;
-//     }
-//     num.0
-// }
-
-
-fn fibr(n: u32) -> u32 {
-    if n < 2 {
-       return n;
+    let mut sum: u64 = 0;
+    for (i, elem) in l.iter().enumerate() {
+        sum += (elem - r.get(i).unwrap()).unsigned_abs() as u64;
     }
-    fibr(n-2) + fibr(n-1)
+    println!("{}", sum);
 }
+
+fn read_lines(filename: &str) -> (Vec<i32>, Vec<i32>) {
+    let mut left: Vec<i32> = Vec::new();
+    let mut right: Vec<i32> = Vec::new();
+
+    for line in read_to_string(filename).unwrap().lines() {
+        // split and then to int
+        let words = line.split(" ").collect::<Vec<_>>();
+        left.push(words[0].parse::<i32>().unwrap());
+        right.push(words.last().unwrap().parse::<i32>().unwrap());
+    }
+    (left, right)
+}
+
