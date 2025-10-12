@@ -3,25 +3,35 @@ use std::fs::read_to_string;
 
 fn main() {
     // parse the input
-    let (l, r) = read_lines("./input.txt");
-
-    let mut sum: usize = 0;
-    for (i, elem) in l.iter().enumerate() {
-        sum += *elem as usize * r.iter().filter(|x| *x == elem).count();
-    }
-    println!("{}", sum);
+    println!("{}", read_lines("./input.txt"));
 }
 
-fn read_lines(filename: &str) -> (Vec<i32>, Vec<i32>) {
-    let mut left: Vec<i32> = Vec::new();
-    let mut right: Vec<i32> = Vec::new();
+fn read_lines(filename: &str) -> u64 {
 
-    for line in read_to_string(filename).unwrap().lines() {
-        // split and then to int
-        let words = line.split(" ").collect::<Vec<_>>();
-        left.push(words[0].parse::<i32>().unwrap());
-        right.push(words.last().unwrap().parse::<i32>().unwrap());
-    }
-    (left, right)
+    let res: u64 = read_to_string(filename).unwrap().lines().map(line_to_ints).fold(0, |x,y| x+y as u64);
+    res
 }
 
+fn line_to_ints(line: &str) -> i8 {
+    // split and parse to ints
+    let line: Vec<i64> = line.split(" ")
+        .map(|s| s.parse::<i64>().unwrap())
+        .collect();
+
+    let mut diffs: Vec<i64> = Vec::new();
+    // enumerate all items exept the 0th
+    // and subtract the current from the previous
+    for (idx, int) in line[1..].iter().enumerate() {
+        diffs.push(int - line.get(idx).unwrap());
+    }
+    // all results must be of the same sign, and abs < 3
+    if safe(&diffs) {return 1;}
+    0
+}
+
+fn safe(diff: &[i64]) -> bool {
+    diff.iter().all(|x| x.abs() < 4) &&  
+    // why deref????
+    ( diff.iter().all(|x| *x > 0) || diff.iter().all(|x| *x < 0))
+
+}
