@@ -1,54 +1,80 @@
-use std::io;
 use std::fs::read_to_string;
+use std::*;
 
 fn main() {
     // parse the input
-    println!("{}", read_lines("./input.txt"));
-}
-
-fn read_lines(filename: &str) -> u64 {
-
-    let res: u64 = read_to_string(filename).unwrap().lines().map(line_to_ints).fold(0, |x,y| x+y as u64);
-    res
-}
-
-fn line_to_ints(line: &str) -> i8 {
-    // split and parse to ints
-    let line: Vec<i64> = line.split(" ")
-        .map(|s| s.parse::<i64>().unwrap())
-        .collect();
-
-    // all results must be of the same sign, and abs < 3
-    let diffs = to_diff(&line);
-    if safe(&diffs) {return 1;}
-    if permute(&line).iter().any(|x| safe(&to_diff(x))) {return 1;}
-    0
-}
-fn to_diff (line: &[i64]) -> Vec<i64> {
-    let mut diffs: Vec<i64> = Vec::new();
-    // enumerate all items exept the 0th
-    // and subtract the current from the previous
-    for (idx, int) in line[1..].iter().enumerate() {
-        diffs.push(int - line.get(idx).unwrap());
+    let mut total = 0;
+    let lines = read_to_string("./input.txt").unwrap();
+    let mut do_me = true;
+    for line in lines.lines()
+    // there has to be a way to make this prettier
+    {
+        for i in 0..line.len() {
+            if let Some((res, mut rest)) = parse_word(&line[i..], "mul(") {
+                if let Some((f, rest)) = parse_digits(rest) {
+                    if let Some((_, rest)) = parse_char(rest, ',') {
+                        if let Some((s, rest)) = parse_digits(rest) {
+                            if let Some((_, _rest)) = parse_char(rest, ')') {
+                                println!("mul({f},{s})");
+                                total += f * s;
+                            }
+                        }
+                    }
+                }
+            }
+        }
     }
-    diffs
-
+    println!("total {total}");
+    // println!("parse 104 {:?}", parse_digits("104"));
+    
 }
 
-fn safe(diff: &[i64]) -> bool {
-    diff.iter().all(|x| x.abs() < 4) &&  
-    // why deref????
-    ( diff.iter().all(|x| *x > 0) || diff.iter().all(|x| *x < 0))
+// general idea, parser combinators
+fn parse_digit(input: &str) -> Option<(usize, &str)> {
+    let mut chars = input.chars();
+    let char = chars.next()?;
+    match char {
+        '0' => Some((0, &input[1..])),
+        '1' => Some((1, &input[1..])),
+        '2' => Some((2, &input[1..])),
+        '3' => Some((3, &input[1..])),
+        '4' => Some((4, &input[1..])),
+        '5' => Some((5, &input[1..])),
+        '6' => Some((6, &input[1..])),
+        '7' => Some((7, &input[1..])),
+        '8' => Some((8, &input[1..])),
+        '9' => Some((9, &input[1..])),
+        _    => None
+    }
 }
 
-// map each element to the vector without that element
-fn permute(vec: &[i64]) -> Vec<Vec<i64>> {
-    vec.iter().enumerate().map(|(idx, _)| rm_elem(vec, idx)).collect()
+fn parse_digits(input: &str) -> Option<(usize, &str)> { 
+    // yep, its small brain time :(
+    let mut res = 0;
+    let mut final_rest = input;
+    while let Some((int, rest)) = parse_digit(final_rest) {
+        res = 10* res + int;
+        final_rest = rest;
+    }
+    Some((res, final_rest))
 }
 
-// stupid, this should be inlineable if u ask me
-fn rm_elem(vec: &[i64], idx: usize) -> Vec<i64> {
-    let mut clone = vec.to_owned();
-    clone.remove(idx);
-    clone
+fn parse_char(input: &str, target: char) -> Option<(char, &str)> { 
+    let char = input.chars().next()?;
+    if char == target {
+        return Some((char, &input[1..]));
+    }
+    None
+}
+
+// what the fuck is a lifetime
+// for the love of god please give me monads
+fn parse_word<'a>(input: &'a str, target: &str) -> Option<(String, &'a str)> {
+    let mut chars = target.chars();
+    let target_char = chars.next()?;
+    let (char, rest) = parse_char(input, target_char)?;
+    if let Some((r_chars, r_rest)) = parse_word(rest, &chars.collect::<String>()) {
+        Some((char.to_string() + &r_chars, r_rest))
+    }
+    else { Some((char.to_string(), rest)) }
 }
