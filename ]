@@ -3,6 +3,7 @@ use std::fs::read_to_string;
 
 fn main() {
     // parse the input
+
     println!("{}", read_lines("./input.txt"));
 }
 
@@ -18,21 +19,16 @@ fn line_to_ints(line: &str) -> i8 {
         .map(|s| s.parse::<i64>().unwrap())
         .collect();
 
-    // all results must be of the same sign, and abs < 3
-    let diffs = to_diff(&line);
-    if safe(&diffs) {return 1;}
-    if permute(&line).iter().any(|x| safe(&to_diff(x))) {return 1;}
-    0
-}
-fn to_diff (line: &[i64]) -> Vec<i64> {
     let mut diffs: Vec<i64> = Vec::new();
     // enumerate all items exept the 0th
     // and subtract the current from the previous
     for (idx, int) in line[1..].iter().enumerate() {
         diffs.push(int - line.get(idx).unwrap());
     }
-    diffs
-
+    // all results must be of the same sign, and abs < 3
+    if safe(&diffs) {return 1;}
+    if safe() {return 1;}
+    0
 }
 
 fn safe(diff: &[i64]) -> bool {
@@ -42,13 +38,12 @@ fn safe(diff: &[i64]) -> bool {
 }
 
 // map each element to the vector without that element
-fn permute(vec: &[i64]) -> Vec<Vec<i64>> {
-    vec.iter().enumerate().map(|(idx, _)| rm_elem(vec, idx)).collect()
+fn permute(vec: &Vec<i64>) -> Vec<Vec<i64>> {
+    vec.iter().enumerate().map(|(idx, elem)| rm_elem(elem, idx).collect()
 }
 
-// stupid, this should be inlineable if u ask me
-fn rm_elem(vec: &[i64], idx: usize) -> Vec<i64> {
-    let mut clone = vec.to_owned();
-    clone.remove(idx);
-    clone
+// stupid 
+fn rm_elem(vec: &Vec<i64>, idx: usize) -> &Vec<i64> {
+    vec.clone().remove(idx);
+    vec
 }
