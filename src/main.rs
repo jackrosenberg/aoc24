@@ -1,22 +1,28 @@
-use std::fs::read_to_string;
-use std::*;
+use std::fs::read_to_string; use std::*;
 
 fn main() {
     // parse the input
     let mut total = 0;
     let lines = read_to_string("./input.txt").unwrap();
     let mut do_me = true;
-    for line in lines.lines()
     // there has to be a way to make this prettier
-    {
+    for line in lines.lines() {
         for i in 0..line.len() {
+            if parse_word(&line[i..], "do()").is_some() {
+                do_me = true;
+            }
+            if parse_word(&line[i..], "don't()").is_some() {
+                do_me = false;
+            }
             if let Some((res, mut rest)) = parse_word(&line[i..], "mul(") {
                 if let Some((f, rest)) = parse_digits(rest) {
                     if let Some((_, rest)) = parse_char(rest, ',') {
                         if let Some((s, rest)) = parse_digits(rest) {
                             if let Some((_, _rest)) = parse_char(rest, ')') {
-                                println!("mul({f},{s})");
-                                total += f * s;
+                                println!("mul({f},{s}) {}", do_me);
+                                if do_me {
+                                    total += f * s;
+                                }
                             }
                         }
                     }
@@ -25,8 +31,6 @@ fn main() {
         }
     }
     println!("total {total}");
-    // println!("parse 104 {:?}", parse_digits("104"));
-    
 }
 
 // general idea, parser combinators
@@ -70,11 +74,11 @@ fn parse_char(input: &str, target: char) -> Option<(char, &str)> {
 // what the fuck is a lifetime
 // for the love of god please give me monads
 fn parse_word<'a>(input: &'a str, target: &str) -> Option<(String, &'a str)> {
-    let mut chars = target.chars();
-    let target_char = chars.next()?;
-    let (char, rest) = parse_char(input, target_char)?;
-    if let Some((r_chars, r_rest)) = parse_word(rest, &chars.collect::<String>()) {
-        Some((char.to_string() + &r_chars, r_rest))
+    if target.len() > input.len() {
+        return None;
     }
-    else { Some((char.to_string(), rest)) }
+    if input[..target.len()] == *target {
+        return Some((target.to_string(), &input[target.len()..]));
+    } 
+    None
 }
