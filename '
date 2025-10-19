@@ -10,7 +10,7 @@ fn main() {
     let lines = read_to_string("./input.txt").unwrap();
     // make a mask for easy compare
     let xmas = Array::from_vec(vec!['X','M','A','S']);
-    let dirs = Array::from_vec((-1..=1).cartesian_product(-1..=1).filter(|x| *x != (0,0)).collect::<Vec<_>>());
+    let dirs = Array::from_vec((-1..=1).cartesian_product(-1..=1).filter(|x| *x != (1,1)).collect::<Vec<_>>());
     // fill the array 
     let rows = lines.lines().count();
     let mut cols = 0;
@@ -28,7 +28,7 @@ fn main() {
     }
 
     let grid = Array::from_shape_vec((rows, cols), inp).unwrap();
-    // println!("{:?}", (rows, cols));
+    println!("{:?}", (rows, cols));
     // println!("{:?}", grid.slice(s![0..1; -1, 0..4; -1]));
 
     for ((y,x), char) in grid.indexed_iter() {
@@ -48,7 +48,6 @@ fn main() {
             if sum_y >= rows || sum_x >= cols {
                 continue;
             }
-            // println!("row {}-{}, col {}-{}, dir ({},{}) ", y, sum_y,x, sum_x, dy, dx);
             let (mut s_y, mut e_y, mut rev_y) = (y, sum_y, 1);
             let (mut s_x, mut e_x, mut rev_x) = (x, sum_x, 1);
             // stupid empty ass ranges
@@ -71,9 +70,10 @@ fn main() {
             // println!("(rows, col){:?}", ((y, sum_y),x));
             if match slice.shape() {
                         [4,4] => {
-                            // println!("row {}-{}, col {}-{} ", y, sum_y,x, sum_x);
-                            // println!("{} ", slice);
+                            println!("row {}-{}, col {}-{} ", y, sum_y,x, sum_x);
+                            println!("{} ", slice);
                             slice.diag() == xmas
+                            
                         },
                         [1,4] => slice.slice(s![0, ..]) == xmas,
                         [4,1] => slice.slice(s![.., 0]) == xmas,
