@@ -3,13 +3,11 @@ use std::fs::read_to_string;
 
 fn main() {
     // parse the input
-    let (mut l, mut r) = read_lines("./input.txt");
-    l.sort();
-    r.sort();
+    let (l, r) = read_lines("./input.txt");
 
-    let mut sum: u64 = 0;
+    let mut sum: usize = 0;
     for (i, elem) in l.iter().enumerate() {
-        sum += (elem - r.get(i).unwrap()).unsigned_abs() as u64;
+        sum += *elem as usize * r.iter().filter(|x| *x == elem).count();
     }
     println!("{}", sum);
 }
