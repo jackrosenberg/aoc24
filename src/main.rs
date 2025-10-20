@@ -9,8 +9,9 @@ fn main() {
     let mut total = 0;
     let lines = read_to_string("./input.txt").unwrap();
     // make a mask for easy compare
-    let xmas = Array::from_vec(vec!['X','M','A','S']);
-    let dirs = Array::from_vec((-1..=1).cartesian_product(-1..=1).filter(|x| *x != (0,0)).collect::<Vec<_>>());
+    let xmas = Array::from_vec(vec!['M','A','S']);
+    // now dirs must be an x, so remove any item with 0
+    let dirs = Array::from_vec((-1..=1).cartesian_product(-1..=1).filter(|(x,y)| *x != 0 && *y !=0 ).collect::<Vec<_>>());
     // fill the array 
     let rows = lines.lines().count();
     let mut cols = 0;
@@ -32,60 +33,24 @@ fn main() {
     // println!("{:?}", grid.slice(s![0..1; -1, 0..4; -1]));
 
     for ((y,x), char) in grid.indexed_iter() {
-        // X marks the spot
-        if *char != 'X' {
+        // A marks the spot
+        // check for equality if the endpoint is in bounds
+        if *char != 'A' || y == rows -1 || y == 0 || x == 0 || x == cols -1 {
             continue;
         }
-        // check for equality if the endpoint is in bounds
-        for (dx, dy) in dirs.iter() {
+        // start on (y,x), and add offset
+        // this is the 3*3
+        let slice = grid.slice(s![y-1..=y+1, x-1..=x+1]);
 
-            let (Some(sum_x), Some(sum_y)) = (
-                    x.checked_add_signed(dx*3),
-                    y.checked_add_signed(dy*3)
-                ) else {
-                    continue;
-                };
-            if sum_y >= rows || sum_x >= cols {
-                continue;
-            }
-            // println!("row {}-{}, col {}-{}, dir ({},{}) ", y, sum_y,x, sum_x, dy, dx);
-            let (mut s_y, mut e_y, mut rev_y) = (y, sum_y, 1);
-            let (mut s_x, mut e_x, mut rev_x) = (x, sum_x, 1);
-            // stupid empty ass ranges
-            if y > sum_y {
-                s_y = sum_y;
-                e_y = y;
-                rev_y = -1
-            }
-            if x > sum_x {
-                s_x = sum_x;
-                e_x = x;
-                rev_x = -1
-            }
 
-            // println!("row {}-{}, col {}-{} ", y, sum_y,x, sum_x);
-            let slice = grid.slice(s![s_y..=e_y; rev_y,s_x..=e_x; rev_x]);
-            // println!("--sl: {}", );
-            // println!("s: {:?}", grid.slice(s![s_y..=e_y; rev_y,s_x..=e_x; rev_x]).shape());
-
-            // println!("(rows, col){:?}", ((y, sum_y),x));
-            if match slice.shape() {
-                        [4,4] => {
-                            // println!("row {}-{}, col {}-{} ", y, sum_y,x, sum_x);
-                            // println!("{} ", slice);
-                            slice.diag() == xmas
-                        },
-                        [1,4] => slice.slice(s![0, ..]) == xmas,
-                        [4,1] => slice.slice(s![.., 0]) == xmas,
-                        _     => false
-
-            } 
-            {
-                total +=1;
-            }
+        let (diag, anti_diag) = (slice.diag(), Array::from_vec(vec![slice[[0,2]], slice[[1,1]], slice[[2,0]]])) ;
+        if (diag == xmas || diag == xmas.slice(s![..; -1])) &&
+           (anti_diag == xmas || anti_diag == xmas.slice(s![..; -1])) {
+            total +=1;
         }
     }
     // println!("{:?}", grid);
     println!("total {total}");
 }
+
 
