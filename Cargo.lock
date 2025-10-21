@@ -15,6 +15,12 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "2fd1289c04a9ea8cb22300a459a72a385d7c73d3259e2ed7dcb2af674838cfa9"
 
 [[package]]
+name = "dict"
+version = "0.1.5"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "39fbb71fba1e2c935f51b056de0d812d9b625b8165b2d7f8848902080fbdffb4"
+
+[[package]]
 name = "either"
 version = "1.15.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -45,6 +51,7 @@ dependencies = [
 name = "krait"
 version = "0.1.0"
 dependencies = [
+ "dict",
  "itertools",
  "ndarray",
  "rand",

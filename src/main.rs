@@ -1,56 +1,69 @@
 use std::fs::read_to_string;
 use std::*;
-use std::iter::*;
-use ndarray::*;
 use itertools::Itertools;
+use std::collections::HashMap;
 
 fn main() {
     // parse the input
     let mut total = 0;
     let lines = read_to_string("./input.txt").unwrap();
-    // make a mask for easy compare
-    let xmas = Array::from_vec(vec!['M','A','S']);
-    // now dirs must be an x, so remove any item with 0
-    let dirs = Array::from_vec((-1..=1).cartesian_product(-1..=1).filter(|(x,y)| *x != 0 && *y !=0 ).collect::<Vec<_>>());
-    // fill the array 
-    let rows = lines.lines().count();
-    let mut cols = 0;
-    let mut inp = Vec::<char>::new();
-    for e in lines.lines() {
-        // messy but works
-        cols = e.len();
-        for c in e.chars() {
-            inp.push(c);
-        }
-    }
-    // nono
-    if cols == 0 || rows == 0 {
-        panic!("cols or rows is 0")
-    }
-
-    let grid = Array::from_shape_vec((rows, cols), inp).unwrap();
-    // println!("{:?}", (rows, cols));
-    // println!("{:?}", grid.slice(s![0..1; -1, 0..4; -1]));
-
-    for ((y,x), char) in grid.indexed_iter() {
-        // A marks the spot
-        // check for equality if the endpoint is in bounds
-        if *char != 'A' || y == rows -1 || y == 0 || x == 0 || x == cols -1 {
+    let mut rules_done = false;
+    let mut rules = HashMap::<usize, Vec<usize>>::new();
+    let mut updates = Vec::<Vec<usize>>::new();
+    let mut starters = Vec::<usize>::new();
+    // real big brain shit, we're gonna do a topo sort to determine the 'correct' order once and
+    // for all
+    for line in lines.lines() {
+        if line.is_empty() {
+            rules_done = true;
             continue;
+        }             
+        if !rules_done {
+            let mut num_iter = line.split("|");
+            // each page knows what pages must come b4 itself
+            let (b4, aftr) = (num_iter.next().unwrap().parse::<usize>().unwrap(), num_iter.next().unwrap().parse::<usize>().unwrap());
+            // either insert or update
+            let rule = rules.entry(aftr).or_default();
+            rule.push(b4);
         }
-        // start on (y,x), and add offset
-        // this is the 3*3
-        let slice = grid.slice(s![y-1..=y+1, x-1..=x+1]);
-
-
-        let (diag, anti_diag) = (slice.diag(), Array::from_vec(vec![slice[[0,2]], slice[[1,1]], slice[[2,0]]])) ;
-        if (diag == xmas || diag == xmas.slice(s![..; -1])) &&
-           (anti_diag == xmas || anti_diag == xmas.slice(s![..; -1])) {
-            total +=1;
+        else {
+            updates.push(line.split(",").map(|s| s.parse::<usize>().unwrap()).collect());
         }
     }
-    // println!("{:?}", grid);
-    println!("total {total}");
+
+    println!("rules {rules:?}");
+    println!("updates {updates:?}");
+    let mut all_pages: Vec<usize> = rules.iter().flat_map(|(k, v)| { 
+        let mut nv = v.clone();
+        nv.push(*k);
+        nv
+    })
+        .unique()
+        .collect::<Vec<usize>>();
+        all_pages.append(&mut updates.clone().into_iter().flatten().unique().collect::<Vec<_>>());
+    
+
+    for v in &all_pages {
+        if !rules.contains_key(v) && !starters.contains(v) {
+            starters.push(*v);
+        }
+    }
+    // println!("starters {starters:?}");
+    // println!("all {all_pages:?}");
+    // println!("total {total}");
+    let sorted = khan(&all_pages, rules);
+    println!("sort {sorted:?}");
 }
 
+fn khan(all: &[usize], rules: HashMap::<usize, Vec<usize>>) -> Vec<usize> {
+    let mut sorted = Vec::<usize>::new();
+    let mut start_nodes = Vec::<usize>::new();
+    // pop elems while we still have them
+    while let Some(n) = start_nodes.pop() {
+        sorted.push(n);
+        for m in all.filter(|p| ) {
+        }
+    }
+    todo!();
+}
 
